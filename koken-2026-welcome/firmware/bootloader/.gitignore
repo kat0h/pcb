@@ -1,0 +1,6 @@
+bootloader.elf
+bootloader.hex
+bootloader.lst
+bootloader.map
+bootloader_ext.bin
+ch32v003fun-usb-bootloader.ld
