@@ -5,7 +5,7 @@
 // USB
 #include "rv003usb.h"
 // neopixel
-#include "rainbow.h"
+#include "../lib/ch32fun/examples/ws2812bdemo/color_utilities.h"
 #define WS2812BSIMPLE_IMPLEMENTATION
 #include "ws2812b_simple.h"
 // adc
@@ -16,8 +16,17 @@
 #define EX_IO GPIOv_from_PORT_PIN(GPIO_port_C, 1)
 #define NEOPIXEL_PIN 2 // PA2
 
-// 前のループでボタンが押されていたかを判定
+// 前のループでボタンが押されていたか
 uint8_t before_btn_state = 0;
+
+void set_cpu_prescaler(uint32_t rcc_cfgr0_hpre) {
+    // RCC_CFGR0 レジスタの HPRE (AHB Prescaler) ビットをクリアして設定
+    uint32_t temp = RCC->CFGR0;
+    temp &= ~(RCC_HPRE); // マスク（既存の設定をクリア）
+    temp |= rcc_cfgr0_hpre;
+    RCC->CFGR0 = temp;
+}
+
 
 int main() {
   SystemInit();
@@ -28,27 +37,42 @@ int main() {
   WS2812BSimpleSend(
       GPIOA, NEOPIXEL_PIN,
       (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 9);
-  // ADCの初期化
+  // 電源を判別
   adc_init_vref();
+  uint8_t usb_connected = get_vcc_mv() > 3100;
   // usbの初期化
-  usb_setup();
+  if (usb_connected)
+    usb_setup();
+  else {
+    // USB接続でない場合は動作クロックを落とす
+    // set_cpu_prescaler(RCC_HPRE_DIV8);
+    // TODO:
+  }
   before_btn_state = GPIO_digitalRead(BUTTON_PIN);
+  // 色相環のシフト量
+  uint8_t wheel_pos = 0;
+  uint8_t brightness = usb_connected ? 50 : 5; // 電源電圧によって明るさを変更
+  uint8_t all_led_data[9] = {0};
   // メインループ
   while (1) {
     uint8_t current_btn_state = GPIO_digitalRead(BUTTON_PIN);
-    if (current_btn_state == 1) {
-      // LEDを光らせる
-      uint8_t all_led_data[9];
-      for (int i = 0; i < 3; i++)
-        get_rainbow_for_led(i, 3, wheel_pos, &all_led_data[i * 3]);
+    wheel_pos += 4;
+    if (current_btn_state == 1 || !usb_connected) {
+      for (int i = 0; i < 3; i++) {
+        // 各LEDの色相をずらす
+        uint8_t hue = wheel_pos + (i * (255 / 4));
+        uint32_t color = EHSVtoHEX(hue, 255, brightness);
+        all_led_data[i * 3 + 0] = (color >> 8) & 0xFF;
+        all_led_data[i * 3 + 1] = (color >> 0) & 0xFF;
+        all_led_data[i * 3 + 2] = (color >> 16) & 0xFF;
+      }
       WS2812BSimpleSend(GPIOA, NEOPIXEL_PIN, all_led_data, 9);
-      wheel_pos += 2;
     } else {
       WS2812BSimpleSend(
           GPIOA, NEOPIXEL_PIN,
           (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 9);
     }
-    printf("%ld\n", get_vcc_mv());
+    Delay_Ms(30);
     before_btn_state = current_btn_state;
   }
 }
