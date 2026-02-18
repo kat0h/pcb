@@ -1,4 +1,4 @@
-#define BRIGHTNESS 5
+#define BRIGHTNESS 10
 
 // 虹色計算用の変数
 uint8_t wheel_pos = 0;

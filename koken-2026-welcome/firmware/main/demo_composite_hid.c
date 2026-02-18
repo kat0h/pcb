@@ -2,12 +2,14 @@
 #include "ch32v003_GPIO_branchless.h"
 #include <stdio.h>
 #include <string.h>
-#define WS2812BSIMPLE_IMPLEMENTATION
-#include "ws2812b_simple.h"
 // USB
 #include "rv003usb.h"
 // neopixel
 #include "rainbow.h"
+#define WS2812BSIMPLE_IMPLEMENTATION
+#include "ws2812b_simple.h"
+// adc
+#include "getpowervoltage.h"
 
 // ピンの定義
 #define BUTTON_PIN GPIOv_from_PORT_PIN(GPIO_port_A, 1)
@@ -20,17 +22,18 @@ uint8_t before_btn_state = 0;
 int main() {
   SystemInit();
   funGpioInitAll();
+  // ボタンとNeopixelの初期化
   GPIO_port_enable(GPIO_port_A);
-  GPIO_port_enable(GPIO_port_C);
   GPIO_pinMode(BUTTON_PIN, GPIO_pinMode_I_pullDown, GPIO_Speed_In);
-  GPIO_pinMode(EX_IO, GPIO_pinMode_O_pushPull, GPIO_Speed_2MHz);
-  // 初期状態は3つとも消灯
   WS2812BSimpleSend(
       GPIOA, NEOPIXEL_PIN,
       (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 9);
-  Delay_Ms(1);
+  // ADCの初期化
+  adc_init_vref();
+  // usbの初期化
   usb_setup();
   before_btn_state = GPIO_digitalRead(BUTTON_PIN);
+  // メインループ
   while (1) {
     uint8_t current_btn_state = GPIO_digitalRead(BUTTON_PIN);
     if (current_btn_state == 1) {
@@ -40,13 +43,12 @@ int main() {
         get_rainbow_for_led(i, 3, wheel_pos, &all_led_data[i * 3]);
       WS2812BSimpleSend(GPIOA, NEOPIXEL_PIN, all_led_data, 9);
       wheel_pos += 2;
-      Delay_Ms(10);
     } else {
       WS2812BSimpleSend(
           GPIOA, NEOPIXEL_PIN,
           (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 9);
-      Delay_Ms(10);
     }
+    printf("%ld\n", get_vcc_mv());
     before_btn_state = current_btn_state;
   }
 }
@@ -54,7 +56,6 @@ int main() {
 void usb_handle_user_data(struct usb_endpoint *e, int current_endpoint,
                           uint8_t *data, int len,
                           struct rv003usb_internal *ist) {}
-
 uint8_t tik = 0;
 void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad,
                                 int endp, uint32_t sendtok,
