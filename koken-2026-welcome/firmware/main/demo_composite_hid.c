@@ -20,13 +20,12 @@
 uint8_t before_btn_state = 0;
 
 void set_cpu_prescaler(uint32_t rcc_cfgr0_hpre) {
-    // RCC_CFGR0 レジスタの HPRE (AHB Prescaler) ビットをクリアして設定
-    uint32_t temp = RCC->CFGR0;
-    temp &= ~(RCC_HPRE); // マスク（既存の設定をクリア）
-    temp |= rcc_cfgr0_hpre;
-    RCC->CFGR0 = temp;
+  // RCC_CFGR0 レジスタの HPRE (AHB Prescaler) ビットをクリアして設定
+  uint32_t temp = RCC->CFGR0;
+  temp &= ~(RCC_HPRE); // マスク（既存の設定をクリア）
+  temp |= rcc_cfgr0_hpre;
+  RCC->CFGR0 = temp;
 }
-
 
 int main() {
   SystemInit();
