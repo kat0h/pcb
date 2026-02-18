@@ -11,5 +11,6 @@ include $(CH32FUN)/ch32fun.mk
 
 flash : cv_flash
 clean : cv_clean
-
+format:
+	clang-format -i *.c *.h
 
