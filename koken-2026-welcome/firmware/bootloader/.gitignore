@@ -3,4 +3,12 @@ bootloader.hex
 bootloader.lst
 bootloader.map
 bootloader_ext.bin
+bootloader.bin
 ch32v003fun-usb-bootloader.ld
+configurebootloader.bin
+configurebootloader.elf
+configurebootloader_ext.bin
+configurebootloader.hex
+configurebootloader.lst
+configurebootloader.map
+
