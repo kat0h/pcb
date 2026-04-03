@@ -32,7 +32,7 @@ int main() {
   funGpioInitAll();
   // ボタンとNeopixelの初期化
   GPIO_port_enable(GPIO_port_A);
-  GPIO_pinMode(BUTTON_PIN, GPIO_pinMode_I_pullDown, GPIO_Speed_In);
+  GPIO_pinMode(BUTTON_PIN, GPIO_pinMode_I_pullUp, GPIO_Speed_In);
   WS2812BSimpleSend(
       GPIOA, NEOPIXEL_PIN,
       (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 9);
