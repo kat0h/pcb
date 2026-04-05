@@ -1,6 +1,6 @@
 all : flash
 
-TARGET:=demo_composite_hid
+TARGET:=main
 CH32FUN:=../lib/ch32fun/ch32fun
 TARGET_MCU:=CH32V003
 

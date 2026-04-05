@@ -1,16 +1,3 @@
-#include "ch32fun.h"
-#include "ch32v003_GPIO_branchless.h"
-#include <stdio.h>
-#include <string.h>
-#include "rv003usb.h"
-#include "../lib/ch32fun/examples/ws2812bdemo/color_utilities.h"
-#define WS2812BSIMPLE_IMPLEMENTATION
-#include "ws2812b_simple.h"
-#include "getpowervoltage.h"
-
-#define BT_PIN GPIOv_from_PORT_PIN(GPIO_port_A, 1)
-#define NP_PIN 2 // PA2
-
 // 1. AWU用の割り込みハンドラを定義する (これがないと復帰時にフリーズします)
 // __attribute__((interrupt)) はRISC-Vの割り込み処理に必須です
 void AWU_IRQHandler(void) __attribute__((interrupt));
@@ -68,29 +55,4 @@ void battery_main() {
     WS2812BSimpleSend(GPIOA, NP_PIN, all_led_data, 9);
     enter_stop_mode_30ms();
   }
-}
-
-void keyboard_main() {
-  battery_main();
-}
-
-void usb_handle_user_data(struct usb_endpoint *e, int current_endpoint,
-                          uint8_t *data, int len,
-                          struct rv003usb_internal *ist) {}
-void usb_handle_user_in_request(struct usb_endpoint *e, uint8_t *scratchpad,
-                                int endp, uint32_t sendtok,
-                                struct rv003usb_internal *ist) {
-  usb_send_empty(sendtok);
-}
-
-int main() {
-  SystemInit();
-  funGpioInitAll();
-  GPIO_port_enable(GPIO_port_A); // initialize neopixel
-  WS2812BSimpleSend(GPIOA, NP_PIN, (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 6);
-  GPIO_pinMode(BT_PIN, GPIO_pinMode_I_pullUp, GPIO_Speed_In); // initialize button
-  adc_init_vref();
-  uint8_t usb_connected = get_vcc_mv() > 3200; // power supply is usb?
-  if (usb_connected) keyboard_main();
-  else battery_main();
 }
