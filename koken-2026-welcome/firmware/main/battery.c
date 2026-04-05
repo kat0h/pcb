@@ -1,9 +1,7 @@
 // 1. AWU用の割り込みハンドラを定義する (これがないと復帰時にフリーズします)
 // __attribute__((interrupt)) はRISC-Vの割り込み処理に必須です
 void AWU_IRQHandler(void) __attribute__((interrupt));
-void AWU_IRQHandler(void) {
-    // EXTI Line 9 (AWU) の割り込みフラグをクリア
-    EXTI->INTFR = (1 << 9);
+void AWU_IRQHandler(void) { // EXTI Line 9 (AWU) の割り込みフラグをクリア EXTI->INTFR = (1 << 9);
 }
 
 void awu_init_30ms(void) {
@@ -40,11 +38,11 @@ void enter_stop_mode_30ms(void) {
 void battery_main() {
   awu_init_30ms();
   uint8_t wheel_pos = 0;
-  uint8_t all_led_data[9] = {0};
+  uint8_t all_led_data[6] = {0};
   while (1) {
     uint8_t brightness = !GPIO_digitalRead(BT_PIN) ? 50 : 5;
     wheel_pos += 4;
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 2; i++) {
       // 各LEDの色相をずらす
       uint8_t hue = wheel_pos + (i * (255 / 4));
       uint32_t color = EHSVtoHEX(hue, 255, brightness);
@@ -52,7 +50,7 @@ void battery_main() {
       all_led_data[i * 3 + 1] = (color >> 0) & 0xFF;
       all_led_data[i * 3 + 2] = (color >> 16) & 0xFF;
     }
-    WS2812BSimpleSend(GPIOA, NP_PIN, all_led_data, 9);
+    WS2812BSimpleSend(GPIOA, NP_PIN, all_led_data, 6);
     enter_stop_mode_30ms();
   }
 }
