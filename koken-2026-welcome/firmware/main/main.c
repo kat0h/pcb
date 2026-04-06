@@ -21,7 +21,8 @@ int main() {
   WS2812BSimpleSend(GPIOA, NP_PIN, (uint8_t[]){0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 6);
   GPIO_pinMode(BT_PIN, GPIO_pinMode_I_pullUp, GPIO_Speed_In); // initialize button
   adc_init_vref();
-  uint8_t usb_connected = get_vcc_mv() > 3200; // power supply is usb?
+  Delay_Ms(150);
+  uint8_t usb_connected = get_vcc_mv() > 3150; // power supply is usb?
   if (usb_connected) keyboard_main();
   else battery_main();
 }

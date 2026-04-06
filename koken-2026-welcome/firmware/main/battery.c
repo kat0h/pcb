@@ -36,7 +36,7 @@ void enter_stop_mode_30ms(void) {
 }
 
 void battery_main() {
-  awu_init_30ms();
+  // awu_init_30ms();
   uint8_t wheel_pos = 0;
   uint8_t all_led_data[6] = {0};
   while (1) {
@@ -51,6 +51,6 @@ void battery_main() {
       all_led_data[i * 3 + 2] = (color >> 16) & 0xFF;
     }
     WS2812BSimpleSend(GPIOA, NP_PIN, all_led_data, 6);
-    enter_stop_mode_30ms();
+    Delay_Ms(30);
   }
 }
